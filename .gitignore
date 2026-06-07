@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+target/
+.next/
+.nuxt/
+.npm-cache/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store

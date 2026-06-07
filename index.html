@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能中医客服系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🌿</span>
+                    <span class="logo-text">岐黄智慧 · AI中医</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <nav class="main-nav">
+                    <button class="nav-btn active" data-module="home">首页</button>
+                    <button class="nav-btn" data-module="chat">健康问答</button>
+                    <button class="nav-btn" data-module="triage">症状分诊</button>
+                    <button class="nav-btn" data-module="constitution">体质辨识</button>
+                    <button class="nav-btn" data-module="emergency">急症提醒</button>
+                </nav>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="notificationBtn" title="消息通知">
+                    <span>🔔</span>
+                    <span class="badge" id="notificationBadge">0</span>
+                </button>
+                <button class="icon-btn" id="recordBtn" title="我的记录">
+                    <span>📋</span>
+                </button>
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span class="user-name" id="userName">访客</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">快捷功能</h3>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" data-action="start-chat">
+                            <span class="qa-icon">💬</span>
+                            <span class="qa-text">开始咨询</span>
+                        </button>
+                        <button class="quick-action-btn" data-action="quick-triage">
+                            <span class="qa-icon">🏥</span>
+                            <span class="qa-text">快速分诊</span>
+                        </button>
+                        <button class="quick-action-btn" data-action="test-constitution">
+                            <span class="qa-icon">🧬</span>
+                            <span class="qa-text">体质测试</span>
+                        </button>
+                        <button class="quick-action-btn" data-action="emergency-call">
+                            <span class="qa-icon">🚨</span>
+                            <span class="qa-text">急症求助</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">中医科室</h3>
+                    <div class="dept-list" id="deptList">
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">健康知识</h3>
+                    <div class="knowledge-tags">
+                        <span class="knowledge-tag">四季养生</span>
+                        <span class="knowledge-tag">食疗药膳</span>
+                        <span class="knowledge-tag">经络穴位</span>
+                        <span class="knowledge-tag">常见病症</span>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <section id="module-home" class="module-section active">
+                    <div class="welcome-banner">
+                        <div class="banner-content">
+                            <h1>欢迎使用AI智能中医客服系统</h1>
+                            <p>传承千年中医智慧，为您提供专业的健康咨询、症状分诊和体质辨识服务</p>
+                            <div class="banner-actions">
+                                <button class="btn btn-primary" data-action="start-chat">开始健康咨询</button>
+                                <button class="btn btn-secondary" data-action="test-constitution">免费体质测试</button>
+                            </div>
+                        </div>
+                        <div class="banner-visual">
+                            <span class="banner-icon">🏥</span>
+                        </div>
+                    </div>
+
+                    <div class="service-grid">
+                        <div class="service-card" data-module="chat">
+                            <div class="service-icon">💬</div>
+                            <h3>智能健康问答</h3>
+                            <p>AI中医助手24小时在线，解答您的健康疑问</p>
+                            <ul class="service-features">
+                                <li>✓ 常见病症咨询</li>
+                                <li>✓ 养生建议指导</li>
+                                <li>✓ 食疗方案推荐</li>
+                            </ul>
+                        </div>
+                        <div class="service-card" data-module="triage">
+                            <div class="service-icon">🏥</div>
+                            <h3>智能症状分诊</h3>
+                            <p>根据症状快速推荐对应科室和就医建议</p>
+                            <ul class="service-features">
+                                <li>✓ 症状智能分析</li>
+                                <li>✓ 科室精准推荐</li>
+                                <li>✓ 就医流程指导</li>
+                            </ul>
+                        </div>
+                        <div class="service-card" data-module="constitution">
+                            <div class="service-icon">🧬</div>
+                            <h3>中医体质辨识</h3>
+                            <p>基于国家标准的九种体质辨识，个性化调理建议</p>
+                            <ul class="service-features">
+                                <li>✓ 九种体质检测</li>
+                                <li>✓ 个性化调理方案</li>
+                                <li>✓ 饮食运动指导</li>
+                            </ul>
+                        </div>
+                        <div class="service-card" data-module="emergency">
+                            <div class="service-icon">🚨</div>
+                            <h3>急症转诊提醒</h3>
+                            <p>紧急症状快速识别，及时提醒就医</p>
+                            <ul class="service-features">
+                                <li>✓ 急症智能识别</li>
+                                <li>✓ 风险等级评估</li>
+                                <li>✓ 急救措施指导</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="home-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">10,000+</span>
+                            <span class="stat-label">健康咨询</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">5,000+</span>
+                            <span class="stat-label">体质测试</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">98%</span>
+                            <span class="stat-label">用户满意度</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">24h</span>
+                            <span class="stat-label">全天候服务</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="module-chat" class="module-section">
+                    <div class="chat-container">
+                        <div class="chat-sidebar">
+                            <div class="chat-sidebar-header">
+                                <h3>对话记录</h3>
+                                <button class="btn btn-sm btn-primary" id="newChatBtn">+ 新对话</button>
+                            </div>
+                            <div class="conversation-list" id="conversationList">
+                                <div class="empty-conversation">
+                                    <p>暂无对话记录</p>
+                                    <p class="hint">点击右侧开始咨询</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-main">
+                            <div class="chat-header">
+                                <div class="chat-doctor-info">
+                                    <span class="doctor-avatar">🤖</span>
+                                    <div>
+                                        <h4>AI 中医助手</h4>
+                                        <span class="doctor-status online">在线</span>
+                                    </div>
+                                </div>
+                                <div class="chat-actions">
+                                    <button class="icon-btn" title="结束对话" id="endChatBtn">
+                                        <span>📞</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="message system-message">
+                                    <div class="message-content">
+                                        <p>您好！我是AI中医助手，很高兴为您服务。请问您有什么健康问题需要咨询？</p>
+                                        <div class="quick-replies">
+                                            <button class="quick-reply-btn">感冒了怎么办？</button>
+                                            <button class="quick-reply-btn">失眠如何调理？</button>
+                                            <button class="quick-reply-btn">春季养生建议</button>
+                                            <button class="quick-reply-btn">我想做体质测试</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-input-area">
+                                <div class="chat-tools">
+                                    <button class="tool-btn" id="uploadImageBtn" title="上传图片">📷</button>
+                                    <button class="tool-btn" id="symptomRecordBtn" title="症状记录">📝</button>
+                                </div>
+                                <div class="input-wrapper">
+                                    <input type="text" id="chatInput" placeholder="请输入您的问题..." class="chat-input">
+                                    <button class="btn btn-primary send-btn" id="sendBtn">发送</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="module-triage" class="module-section">
+                    <div class="triage-container">
+                        <div class="triage-header">
+                            <h2>智能症状分诊</h2>
+                            <p>请选择或输入您的症状，我们将为您推荐对应的科室和就医建议</p>
+                        </div>
+                        
+                        <div class="triage-steps">
+                            <div class="step-item active" data-step="1">
+                                <span class="step-number">1</span>
+                                <span class="step-text">选择症状</span>
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-text">描述详情</span>
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <span class="step-number">3</span>
+                                <span class="step-text">分诊建议</span>
+                            </div>
+                        </div>
+
+                        <div class="triage-content">
+                            <div class="triage-step-panel active" data-panel="1">
+                                <div class="symptom-search">
+                                    <input type="text" id="symptomSearch" placeholder="搜索症状..." class="search-input">
+                                </div>
+                                <div class="symptom-categories">
+                                    <h4>按部位选择</h4>
+                                    <div class="body-parts">
+                                        <button class="part-btn" data-part="head">头部</button>
+                                        <button class="part-btn" data-part="chest">胸腹部</button>
+                                        <button class="part-btn" data-part="back">腰背</button>
+                                        <button class="part-btn" data-part="limbs">四肢</button>
+                                        <button class="part-btn" data-part="skin">皮肤</button>
+                                        <button class="part-btn" data-part="other">其他</button>
+                                    </div>
+                                </div>
+                                <div class="common-symptoms">
+                                    <h4>常见症状</h4>
+                                    <div class="symptom-tags" id="symptomTags">
+                                    </div>
+                                </div>
+                                <div class="selected-symptoms">
+                                    <h4>已选症状 (<span id="selectedCount">0</span>)</h4>
+                                    <div class="selected-list" id="selectedSymptomsList">
+                                        <span class="hint-text">请选择您的症状</span>
+                                    </div>
+                                </div>
+                                <div class="triage-actions">
+                                    <button class="btn btn-primary" id="triageNextBtn" disabled>下一步</button>
+                                </div>
+                            </div>
+
+                            <div class="triage-step-panel" data-panel="2">
+                                <div class="symptom-detail-form">
+                                    <div class="form-group">
+                                        <label>症状持续时间</label>
+                                        <select id="symptomDuration" class="form-control">
+                                            <option value="">请选择</option>
+                                            <option value="1">1天以内</option>
+                                            <option value="3">1-3天</option>
+                                            <option value="7">3-7天</option>
+                                            <option value="30">1-4周</option>
+                                            <option value="90">1-3个月</option>
+                                            <option value="more">3个月以上</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>症状严重程度</label>
+                                        <div class="severity-options">
+                                            <label class="severity-option">
+                                                <input type="radio" name="severity" value="mild">
+                                                <span class="severity-label mild">轻微</span>
+                                            </label>
+                                            <label class="severity-option">
+                                                <input type="radio" name="severity" value="moderate">
+                                                <span class="severity-label moderate">中等</span>
+                                            </label>
+                                            <label class="severity-option">
+                                                <input type="radio" name="severity" value="severe">
+                                                <span class="severity-label severe">严重</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>详细描述</label>
+                                        <textarea id="symptomDescription" class="form-control" rows="4" placeholder="请详细描述您的症状，包括发作时间、诱因、缓解因素等..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>上传相关图片（可选）</label>
+                                        <div class="image-upload-area" id="triageImageUpload">
+                                            <div class="upload-placeholder">
+                                                <span>📷</span>
+                                                <p>点击或拖拽上传图片</p>
+                                                <p class="hint">支持舌象、皮损等图片</p>
+                                            </div>
+                                            <input type="file" id="triageImageInput" accept="image/*" hidden>
+                                        </div>
+                                        <div class="uploaded-images" id="triageUploadedImages"></div>
+                                    </div>
+                                </div>
+                                <div class="triage-actions">
+                                    <button class="btn btn-secondary" id="triagePrevBtn">上一步</button>
+                                    <button class="btn btn-primary" id="triageSubmitBtn">提交分诊</button>
+                                </div>
+                            </div>
+
+                            <div class="triage-step-panel" data-panel="3">
+                                <div class="triage-result" id="triageResult">
+                                    <div class="result-loading">
+                                        <div class="loading-spinner"></div>
+                                        <p>正在分析您的症状...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="module-constitution" class="module-section">
+                    <div class="constitution-container">
+                        <div class="constitution-header">
+                            <h2>中医体质辨识</h2>
+                            <p>基于《中医体质分类与判定》国家标准，通过简单问卷了解您的体质类型</p>
+                            <div class="constitution-intro">
+                                <div class="intro-item">
+                                    <span class="intro-icon">📊</span>
+                                    <span>九种体质精准辨识</span>
+                                </div>
+                                <div class="intro-item">
+                                    <span class="intro-icon">⏱️</span>
+                                    <span>约3-5分钟完成</span>
+                                </div>
+                                <div class="intro-item">
+                                    <span class="intro-icon">📋</span>
+                                    <span>个性化调理方案</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="constitution-quiz" id="constitutionQuiz">
+                            <div class="quiz-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="quizProgressFill"></div>
+                                </div>
+                                <span class="progress-text">
+                                    第 <span id="currentQuestionNum">1</span> / <span id="totalQuestionNum">10</span> 题
+                                </span>
+                            </div>
+
+                            <div class="question-card" id="questionCard">
+                            </div>
+
+                            <div class="quiz-actions">
+                                <button class="btn btn-secondary" id="prevQuestionBtn" disabled>上一题</button>
+                                <button class="btn btn-primary" id="nextQuestionBtn">下一题</button>
+                            </div>
+                        </div>
+
+                        <div class="constitution-result" id="constitutionResult" style="display: none;">
+                        </div>
+                    </div>
+                </section>
+
+                <section id="module-emergency" class="module-section">
+                    <div class="emergency-container">
+                        <div class="emergency-header">
+                            <div class="emergency-warning">
+                                <span class="warning-icon">⚠️</span>
+                                <div>
+                                    <h2>急症识别与转诊提醒</h2>
+                                    <p>如遇紧急情况，请立即拨打急救电话 <strong class="emergency-phone">120</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="emergency-content">
+                            <div class="emergency-search">
+                                <h3>快速症状自查</h3>
+                                <input type="text" id="emergencySearch" placeholder="输入症状名称，如：胸痛、呼吸困难..." class="search-input large">
+                            </div>
+
+                            <div class="emergency-categories">
+                                <div class="emergency-category critical">
+                                    <h3><span class="category-icon">🚨</span> 危急症状（立即就医）</h3>
+                                    <div class="emergency-symptom-list" id="criticalSymptoms">
+                                    </div>
+                                </div>
+                                <div class="emergency-category urgent">
+                                    <h3><span class="category-icon">🏥</span> 紧急症状（尽快就医）</h3>
+                                    <div class="emergency-symptom-list" id="urgentSymptoms">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="emergency-guidance">
+                                <h3>应急处理指南</h3>
+                                <div class="guidance-cards">
+                                    <div class="guidance-card">
+                                        <h4>📞 拨打急救电话</h4>
+                                        <ol>
+                                            <li>保持冷静，拨打120</li>
+                                            <li>说清地址和患者情况</li>
+                                            <li>保持电话畅通</li>
+                                            <li>派人在路口接应</li>
+                                        </ol>
+                                    </div>
+                                    <div class="guidance-card">
+                                        <h4>❤️ 心肺复苏（CPR）</h4>
+                                        <ol>
+                                            <li>判断意识和呼吸</li>
+                                            <li>胸外按压：100-120次/分钟</li>
+                                            <li>开放气道，人工呼吸</li>
+                                            <li>持续至急救人员到达</li>
+                                        </ol>
+                                    </div>
+                                    <div class="guidance-card">
+                                        <h4>🩹 外伤止血</h4>
+                                        <ol>
+                                            <li>直接压迫止血</li>
+                                            <li>抬高患肢</li>
+                                            <li>使用干净敷料包扎</li>
+                                            <li>出血不止及时就医</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="right-panel" id="rightPanel">
+                <div class="panel-section" id="statsPanel">
+                    <h3 class="panel-title">健康数据概览</h3>
+                    <div class="mini-stats">
+                        <div class="mini-stat">
+                            <span class="mini-stat-icon">💬</span>
+                            <div>
+                                <span class="mini-stat-value" id="chatCount">0</span>
+                                <span class="mini-stat-label">咨询次数</span>
+                            </div>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-icon">📋</span>
+                            <div>
+                                <span class="mini-stat-value" id="recordCount">0</span>
+                                <span class="mini-stat-label">症状记录</span>
+                            </div>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-icon">🧬</span>
+                            <div>
+                                <span class="mini-stat-value" id="constitutionDone">0</span>
+                                <span class="mini-stat-label">体质测试</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section" id="doctorPanel">
+                    <h3 class="panel-title">推荐医师</h3>
+                    <div class="doctor-list" id="doctorList">
+                    </div>
+                </div>
+
+                <div class="panel-section" id="appointmentPanel">
+                    <h3 class="panel-title">预约挂号</h3>
+                    <button class="btn btn-primary btn-block" id="makeAppointmentBtn">
+                        <span>📅</span> 立即预约
+                    </button>
+                    <div class="appointment-hint">
+                        <p>支持线上预约，到院优先就诊</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+    </div>
+
+    <script src="js/data/mockData.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/modules/chat.js"></script>
+    <script src="js/modules/triage.js"></script>
+    <script src="js/modules/constitution.js"></script>
+    <script src="js/modules/emergency.js"></script>
+    <script src="js/modules/records.js"></script>
+    <script src="js/modules/modals.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
