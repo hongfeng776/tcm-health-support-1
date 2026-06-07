@@ -16,12 +16,23 @@ const TriageModule = {
     init() {
         this.bindEvents();
         this.renderCommonSymptoms();
+        this.refreshSelectedSymptomsUI();
+    },
+
+    refreshSelectedSymptomsUI() {
+        this.updateSelectedSymptoms();
+        this.updateSymptomTags();
     },
 
     bindEvents() {
-        document.getElementById('triageNextBtn').addEventListener('click', () => this.nextStep());
-        document.getElementById('triagePrevBtn').addEventListener('click', () => this.prevStep());
-        document.getElementById('triageSubmitBtn').addEventListener('click', () => this.submitTriage());
+        const nextBtn = document.getElementById('triageNextBtn');
+        if (nextBtn) nextBtn.addEventListener('click', () => this.nextStep());
+        
+        const prevBtn = document.getElementById('triagePrevBtn');
+        if (prevBtn) prevBtn.addEventListener('click', () => this.prevStep());
+        
+        const submitBtn = document.getElementById('triageSubmitBtn');
+        if (submitBtn) submitBtn.addEventListener('click', () => this.submitTriage());
 
         document.querySelectorAll('.part-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -30,33 +41,36 @@ const TriageModule = {
             });
         });
 
-        document.getElementById('symptomSearch').addEventListener('input', (e) => {
+        const symptomSearch = document.getElementById('symptomSearch');
+        if (symptomSearch) symptomSearch.addEventListener('input', (e) => {
             this.searchSymptoms(e.target.value);
         });
 
         const uploadArea = document.getElementById('triageImageUpload');
         const fileInput = document.getElementById('triageImageInput');
 
-        uploadArea.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => this.handleImageUpload(e));
+        if (uploadArea && fileInput) {
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => this.handleImageUpload(e));
 
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'var(--primary-color)';
-        });
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--primary-color)';
+            });
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = '';
-        });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '';
+            });
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '';
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                this.handleImageFile(files[0]);
-            }
-        });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.handleImageFile(files[0]);
+                }
+            });
+        }
     },
 
     renderCommonSymptoms() {
@@ -406,12 +420,30 @@ const TriageModule = {
 
     handleImageFile(file) {
         if (!file.type.startsWith('image/')) {
-            alert('请上传图片文件');
+            if (window.Modals) {
+                Modals.showAlert({
+                    title: '⚠️ 提示',
+                    content: '<p>请上传图片文件</p>',
+                    confirmText: '知道了',
+                    showCancel: false
+                });
+            } else {
+                alert('请上传图片文件');
+            }
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('图片大小不能超过5MB');
+            if (window.Modals) {
+                Modals.showAlert({
+                    title: '⚠️ 提示',
+                    content: '<p>图片大小不能超过5MB</p>',
+                    confirmText: '知道了',
+                    showCancel: false
+                });
+            } else {
+                alert('图片大小不能超过5MB');
+            }
             return;
         }
 

@@ -2,6 +2,9 @@ const App = {
     currentModule: 'home',
 
     init() {
+        if (window.Session) {
+            Session.init();
+        }
         this.renderSidebar();
         this.renderDoctorList();
         this.bindNavigation();
@@ -115,7 +118,11 @@ const App = {
         }
 
         if (moduleName === 'triage' && TriageModule) {
-            TriageModule.resetTriage();
+            if (TriageModule.selectedSymptoms.length === 0) {
+                TriageModule.resetTriage();
+            } else {
+                TriageModule.refreshSelectedSymptomsUI();
+            }
         }
     },
 

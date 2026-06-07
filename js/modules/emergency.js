@@ -5,7 +5,8 @@ const EmergencyModule = {
     },
 
     bindEvents() {
-        document.getElementById('emergencySearch').addEventListener('input', (e) => {
+        const searchInput = document.getElementById('emergencySearch');
+        if (searchInput) searchInput.addEventListener('input', (e) => {
             this.searchSymptoms(e.target.value);
         });
     },
@@ -19,8 +20,8 @@ const EmergencyModule = {
         const criticalContainer = document.getElementById('criticalSymptoms');
         const urgentContainer = document.getElementById('urgentSymptoms');
 
-        criticalContainer.innerHTML = critical.map(s => this.createSymptomCard(s)).join('');
-        urgentContainer.innerHTML = urgent.map(s => this.createSymptomCard(s)).join('');
+        if (criticalContainer) criticalContainer.innerHTML = critical.map(s => this.createSymptomCard(s)).join('');
+        if (urgentContainer) urgentContainer.innerHTML = urgent.map(s => this.createSymptomCard(s)).join('');
 
         this.bindCardEvents();
     },

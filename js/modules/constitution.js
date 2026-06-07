@@ -10,8 +10,11 @@ const ConstitutionModule = {
     },
 
     bindEvents() {
-        document.getElementById('prevQuestionBtn').addEventListener('click', () => this.prevQuestion());
-        document.getElementById('nextQuestionBtn').addEventListener('click', () => this.nextQuestion());
+        const prevBtn = document.getElementById('prevQuestionBtn');
+        if (prevBtn) prevBtn.addEventListener('click', () => this.prevQuestion());
+        
+        const nextBtn = document.getElementById('nextQuestionBtn');
+        if (nextBtn) nextBtn.addEventListener('click', () => this.nextQuestion());
     },
 
     renderCurrentQuestion() {
@@ -252,8 +255,8 @@ const ConstitutionModule = {
         const quizEl = document.getElementById('constitutionQuiz');
         const resultEl = document.getElementById('constitutionResult');
 
-        quizEl.style.display = 'block';
-        resultEl.style.display = 'none';
+        if (quizEl) quizEl.style.display = 'block';
+        if (resultEl) resultEl.style.display = 'none';
 
         this.renderCurrentQuestion();
         this.updateProgress();

@@ -4,10 +4,17 @@ const Modals = {
     },
 
     bindEvents() {
-        document.getElementById('recordBtn').addEventListener('click', () => this.openRecordsModal());
-        document.getElementById('notificationBtn').addEventListener('click', () => this.openNotificationModal());
-        document.getElementById('makeAppointmentBtn').addEventListener('click', () => this.openAppointmentModal());
-        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+        const recordBtn = document.getElementById('recordBtn');
+        if (recordBtn) recordBtn.addEventListener('click', () => this.openRecordsModal());
+        
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (notificationBtn) notificationBtn.addEventListener('click', () => this.openNotificationModal());
+        
+        const appointmentBtn = document.getElementById('makeAppointmentBtn');
+        if (appointmentBtn) appointmentBtn.addEventListener('click', () => this.openAppointmentModal());
+        
+        const modalOverlay = document.getElementById('modalOverlay');
+        if (modalOverlay) modalOverlay.addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') {
                 this.closeModal();
             }

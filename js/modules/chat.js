@@ -2,27 +2,46 @@ const ChatModule = {
     currentConversationId: null,
     conversations: [],
     pendingAction: null,
+    pendingTriageStarted: false,
+    
+    allSymptomsList: [
+        '头痛', '头晕', '失眠', '耳鸣', '鼻塞', '咽痛', '牙痛', '眼睛干涩',
+        '咳嗽', '胸闷', '胸痛', '心悸', '胃痛', '胃胀', '恶心', '呕吐',
+        '腰痛', '背痛', '颈椎痛', '肩膀痛',
+        '关节痛', '肌肉酸痛', '手脚麻木', '手脚冰凉',
+        '皮疹', '瘙痒', '痤疮', '湿疹', '荨麻疹',
+        '发热', '乏力', '食欲不振', '便秘', '腹泻', '出汗异常'
+    ],
 
     init() {
         this.conversations = Storage.get('conversations', []);
+        this.pendingTriageStarted = false;
+        this.pendingAction = null;
         this.bindEvents();
         this.renderConversationList();
         this.updateStats();
-        
-        if (window.Session) {
-            Session.init();
-        }
     },
 
     bindEvents() {
-        document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) sendBtn.addEventListener('click', () => this.sendMessage());
+        
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput) chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendMessage();
         });
-        document.getElementById('newChatBtn').addEventListener('click', () => this.startNewConversation());
-        document.getElementById('endChatBtn').addEventListener('click', () => this.transferToHuman());
-        document.getElementById('uploadImageBtn').addEventListener('click', () => this.triggerImageUpload());
-        document.getElementById('symptomRecordBtn').addEventListener('click', () => this.showSymptomRecord());
+        
+        const newChatBtn = document.getElementById('newChatBtn');
+        if (newChatBtn) newChatBtn.addEventListener('click', () => this.startNewConversation());
+        
+        const endChatBtn = document.getElementById('endChatBtn');
+        if (endChatBtn) endChatBtn.addEventListener('click', () => this.transferToHuman());
+        
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+        if (uploadImageBtn) uploadImageBtn.addEventListener('click', () => this.triggerImageUpload());
+        
+        const symptomRecordBtn = document.getElementById('symptomRecordBtn');
+        if (symptomRecordBtn) symptomRecordBtn.addEventListener('click', () => this.showSymptomRecord());
 
         this.bindStaticQuickReplies();
     },
@@ -228,8 +247,7 @@ const ChatModule = {
             }
         }
 
-        const allSymptoms = [...new Set(Object.values(TriageModule.partSymptoms || {}).flat())];
-        const matchedSymptoms = allSymptoms.filter(s => lowerMsg.includes(s.toLowerCase()));
+        const matchedSymptoms = this.allSymptomsList.filter(s => lowerMsg.includes(s.toLowerCase()));
         
         if (matchedSymptoms.length > 0 && !this.pendingTriageStarted) {
             this.pendingTriageStarted = true;
@@ -237,7 +255,7 @@ const ChatModule = {
             reply = `我注意到您提到了「${symptomText}」这些症状。为了给您更准确的建议，我可以帮您做一个详细的症状分诊，推荐对应的就诊科室。\n\n您是想现在做详细的症状分诊，还是先简单了解一下相关建议？`;
             quickReplies = ['去做详细分诊', '先简单了解一下', '我还有其他症状'];
             
-            if (window.Session && TriageModule) {
+            if (window.Session && window.TriageModule) {
                 matchedSymptoms.forEach(s => {
                     if (!TriageModule.selectedSymptoms.includes(s)) {
                         TriageModule.selectedSymptoms.push(s);
@@ -518,7 +536,7 @@ const ChatModule = {
         };
 
         return tipsMap[constitutionType] || '🌿 建议您咨询专业中医师，获得个性化的调理方案。';
-    }
+    },
 
     renderMessage(message) {
         const container = document.getElementById('chatMessages');
@@ -545,10 +563,14 @@ const ChatModule = {
         `;
 
         msgDiv.querySelectorAll('.quick-reply-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const text = e.target.textContent;
-                this.handleQuickReply(text);
-            });
+            if (!btn.dataset.bound) {
+                btn.dataset.bound = 'true';
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const text = e.target.textContent;
+                    this.handleQuickReply(text);
+                });
+            }
         });
 
         container.appendChild(msgDiv);
