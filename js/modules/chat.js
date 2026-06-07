@@ -15,16 +15,22 @@ const ChatModule = {
             if (e.key === 'Enter') this.sendMessage();
         });
         document.getElementById('newChatBtn').addEventListener('click', () => this.startNewConversation());
-        document.getElementById('endChatBtn').addEventListener('click', () => this.endConversation());
+        document.getElementById('endChatBtn').addEventListener('click', () => this.transferToHuman());
         document.getElementById('uploadImageBtn').addEventListener('click', () => this.triggerImageUpload());
         document.getElementById('symptomRecordBtn').addEventListener('click', () => this.showSymptomRecord());
 
-        document.querySelectorAll('.quick-reply-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const text = e.target.textContent;
-                document.getElementById('chatInput').value = text;
-                this.sendMessage();
-            });
+        this.bindStaticQuickReplies();
+    },
+
+    bindStaticQuickReplies() {
+        document.querySelectorAll('#chatMessages .quick-reply-btn').forEach(btn => {
+            if (!btn.dataset.bound) {
+                btn.dataset.bound = 'true';
+                btn.addEventListener('click', (e) => {
+                    const text = e.target.textContent;
+                    this.handleQuickReply(text);
+                });
+            }
         });
     },
 
@@ -48,18 +54,36 @@ const ChatModule = {
         }, 100);
     },
 
-    endConversation() {
-        if (this.currentConversationId) {
-            this.addBotMessage('感谢您的咨询！如果还有其他问题，随时可以开始新的对话。祝您身体健康！');
-            const conv = this.conversations.find(c => c.id === this.currentConversationId);
-            if (conv && conv.messages.length > 1) {
-                const firstUserMsg = conv.messages.find(m => m.role === 'user');
-                if (firstUserMsg) {
-                    conv.title = firstUserMsg.content.substring(0, 20) + (firstUserMsg.content.length > 20 ? '...' : '');
-                    this.saveConversations();
-                    this.renderConversationList();
+    transferToHuman() {
+        if (!this.currentConversationId) {
+            this.startNewConversation();
+        }
+
+        if (window.Modals) {
+            Modals.showAlert({
+                title: '👨‍⚕️ 转接人工客服',
+                content: `
+                    <div style="text-align: left;">
+                        <p style="margin-bottom: 16px;">正在为您转接人工客服，请稍候...</p>
+                        <div style="padding: 16px; background: var(--bg-color); border-radius: 8px; margin-bottom: 16px;">
+                            <p style="margin-bottom: 8px;"><strong>📋 服务信息</strong></p>
+                            <p style="font-size: 13px; margin-bottom: 4px;">• 在线客服工作时间：周一至周日 8:00-22:00</p>
+                            <p style="font-size: 13px; margin-bottom: 4px;">• 医师咨询热线：400-888-8888</p>
+                            <p style="font-size: 13px;">• 急诊电话：120（24小时）</p>
+                        </div>
+                        <div style="padding: 12px; background: #fff3e0; border-radius: 8px; border-left: 4px solid #ff9800;">
+                            <p style="font-size: 13px; color: #e65100; margin: 0;">
+                                ⚠️ 本系统提供的建议仅供参考，不能替代专业医疗诊断。如有身体不适，请及时就医。
+                            </p>
+                        </div>
+                    </div>
+                `,
+                confirmText: '我知道了',
+                showCancel: false,
+                onConfirm: () => {
+                    this.addBotMessage('📞 已为您登记人工客服需求，客服人员将尽快与您联系。如有紧急情况，请直接拨打120急救电话。');
                 }
-            }
+            });
         }
     },
 
@@ -181,6 +205,26 @@ const ChatModule = {
         this.addBotMessage(reply, quickReplies);
     },
 
+    handleQuickReply(text) {
+        const specialActions = {
+            '开始体质测试': () => { if (window.App) App.switchModule('constitution'); },
+            '开始症状分诊': () => { if (window.App) App.switchModule('triage'); },
+            '症状分诊': () => { if (window.App) App.switchModule('triage'); },
+            '体质测试': () => { if (window.App) App.switchModule('constitution'); },
+            '春季养生': () => { document.getElementById('chatInput').value = '春季如何养生？'; this.sendMessage(); },
+            '夏季养生': () => { document.getElementById('chatInput').value = '夏季如何养生？'; this.sendMessage(); },
+            '秋季养生': () => { document.getElementById('chatInput').value = '秋季如何养生？'; this.sendMessage(); },
+            '冬季养生': () => { document.getElementById('chatInput').value = '冬季如何养生？'; this.sendMessage(); }
+        };
+
+        if (specialActions[text]) {
+            specialActions[text]();
+        } else {
+            document.getElementById('chatInput').value = text;
+            this.sendMessage();
+        }
+    },
+
     renderMessage(message) {
         const container = document.getElementById('chatMessages');
         const msgDiv = document.createElement('div');
@@ -188,6 +232,7 @@ const ChatModule = {
         msgDiv.dataset.id = message.id;
 
         const avatar = message.role === 'user' ? '👤' : '🤖';
+        const content = message.content.replace(/\n/g, '<br>');
 
         let quickRepliesHtml = '';
         if (message.quickReplies && message.quickReplies.length) {
@@ -199,7 +244,7 @@ const ChatModule = {
         msgDiv.innerHTML = `
             <div class="message-avatar">${avatar}</div>
             <div class="message-content">
-                <p>${message.content}</p>
+                <p>${content}</p>
                 ${quickRepliesHtml}
             </div>
         `;
@@ -207,8 +252,7 @@ const ChatModule = {
         msgDiv.querySelectorAll('.quick-reply-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const text = e.target.textContent;
-                document.getElementById('chatInput').value = text;
-                this.sendMessage();
+                this.handleQuickReply(text);
             });
         });
 
@@ -226,10 +270,12 @@ const ChatModule = {
                 quickReplies: ['感冒了怎么办？', '失眠如何调理？', '春季养生建议', '我想做体质测试']
             };
             this.renderMessage(welcomeMsg);
+            this.bindStaticQuickReplies();
             return;
         }
 
         messages.forEach(msg => this.renderMessage(msg));
+        this.bindStaticQuickReplies();
     },
 
     renderConversationList() {
@@ -267,6 +313,7 @@ const ChatModule = {
         if (conv) {
             this.renderMessages(conv.messages);
             this.renderConversationList();
+            this.bindStaticQuickReplies();
         }
     },
 

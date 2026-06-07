@@ -48,12 +48,25 @@ const ConstitutionModule = {
         }, 300);
     },
 
+    showError(message) {
+        if (window.Modals) {
+            Modals.showAlert({
+                title: '⚠️ 提示',
+                content: `<p>${message}</p>`,
+                confirmText: '知道了',
+                showCancel: false
+            });
+        } else {
+            alert(message);
+        }
+    },
+
     nextQuestion() {
         const questions = TCM_DATA.constitutionQuestions;
         const currentQ = questions[this.currentQuestionIndex];
 
         if (!this.answers[currentQ.id] && this.currentQuestionIndex < questions.length - 1) {
-            alert('请选择一个选项');
+            this.showError('请选择一个选项');
             return;
         }
 
@@ -64,7 +77,7 @@ const ConstitutionModule = {
             this.updateNavButtons();
         } else {
             if (!this.answers[currentQ.id]) {
-                alert('请选择一个选项');
+                this.showError('请选择一个选项');
                 return;
             }
             this.calculateResult();
@@ -183,6 +196,12 @@ const ConstitutionModule = {
                             </div>
                         `).join('')}
                     </div>
+                </div>
+
+                <div style="margin-top: 20px; padding: 16px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <p style="font-size: 12px; color: #f57f17; margin: 0; line-height: 1.6;">
+                        ⚠️ <strong>免责声明：</strong>本体质辨识结果基于《中医体质分类与判定》国家标准，仅供参考，不能替代专业医师的诊断。如需个性化调理方案，请咨询正规中医师。
+                    </p>
                 </div>
 
                 <div class="result-actions">

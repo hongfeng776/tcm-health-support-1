@@ -113,6 +113,10 @@ const App = {
         if (moduleName === 'constitution' && ConstitutionModule) {
             ConstitutionModule.retakeTest();
         }
+
+        if (moduleName === 'triage' && TriageModule) {
+            TriageModule.resetTriage();
+        }
     },
 
     initModules() {

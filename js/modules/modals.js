@@ -194,10 +194,13 @@ const Modals = {
             notifications.push(...defaultNotifications);
         }
 
+        notifications.forEach(n => n.unread = false);
+        Storage.set('notifications', notifications);
+
         notificationsHtml = `
             <div class="notification-list">
                 ${notifications.map(n => `
-                    <div class="notification-item ${n.unread ? 'unread' : ''}">
+                    <div class="notification-item">
                         <div class="notification-title">${n.title}</div>
                         <div class="notification-desc">${n.desc}</div>
                         <div class="notification-time">${Utils.formatTime(n.time)}</div>
@@ -206,10 +209,8 @@ const Modals = {
             </div>
         `;
 
-        const unreadCount = notifications.filter(n => n.unread).length;
-        if (unreadCount > 0) {
-            const badge = document.getElementById('notificationBadge');
-            if (badge) badge.textContent = '0';
+        if (window.App) {
+            App.updateNotificationBadge();
         }
 
         const content = `
@@ -300,8 +301,18 @@ const Modals = {
 
         if (!dept || !doctor || !date || !name || !phone) {
             this.showAlert({
-                title: '提示',
+                title: '⚠️ 提示',
                 content: '<p>请填写完整的预约信息</p>',
+                confirmText: '知道了',
+                showCancel: false
+            });
+            return;
+        }
+
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            this.showAlert({
+                title: '⚠️ 提示',
+                content: '<p>请输入正确的手机号码</p>',
                 confirmText: '知道了',
                 showCancel: false
             });

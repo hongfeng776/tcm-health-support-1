@@ -208,6 +208,15 @@ const TriageModule = {
         const severity = document.querySelector('input[name="severity"]:checked')?.value;
         const description = document.getElementById('symptomDescription').value;
 
+        if (!duration) {
+            this.showError('请选择症状持续时间');
+            return;
+        }
+        if (!severity) {
+            this.showError('请选择症状严重程度');
+            return;
+        }
+
         this.symptomDetails = {
             duration,
             severity,
@@ -216,6 +225,19 @@ const TriageModule = {
         };
 
         this.nextStep();
+    },
+
+    showError(message) {
+        if (window.Modals) {
+            Modals.showAlert({
+                title: '⚠️ 提示',
+                content: `<p>${message}</p>`,
+                confirmText: '知道了',
+                showCancel: false
+            });
+        } else {
+            alert(message);
+        }
     },
 
     calculateTriageResult() {
@@ -315,6 +337,12 @@ const TriageModule = {
                     </div>
                 </div>
 
+                <div style="margin-top: 20px; padding: 16px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <p style="font-size: 12px; color: #f57f17; margin: 0; line-height: 1.6;">
+                        ⚠️ <strong>免责声明：</strong>本系统的分诊建议仅作为参考，不能替代专业医师的诊断。如有身体不适，请及时前往正规医疗机构就诊。紧急情况请直接拨打120急救电话。
+                    </p>
+                </div>
+
                 <div class="result-actions">
                     <button class="btn btn-primary" onclick="TriageModule.resetTriage()">重新分诊</button>
                     <button class="btn btn-secondary" style="background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color);" onclick="window.Modals.openAppointmentModal()">预约挂号</button>
@@ -412,6 +440,8 @@ const TriageModule = {
         document.querySelectorAll('input[name="severity"]').forEach(r => r.checked = false);
         document.getElementById('symptomDescription').value = '';
         document.getElementById('triageUploadedImages').innerHTML = '';
+
+        document.querySelectorAll('.part-btn').forEach(btn => btn.classList.remove('active'));
 
         this.updateSelectedSymptoms();
         this.updateStepUI();
