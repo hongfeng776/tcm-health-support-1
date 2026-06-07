@@ -66,108 +66,432 @@ const Modals = {
     },
 
     openRecordsModal() {
-        const records = RecordsModule.getAllRecords();
-        const stats = RecordsModule.getStats();
-        
-        let timelineHtml = '';
-        if (window.Session) {
-            const currentSession = Session.getCurrentSession();
-            if (currentSession) {
-                const timeline = RecordsModule.getSessionTimeline(currentSession.id);
-                if (timeline.length > 0) {
-                    timelineHtml = `
-                        <div style="margin-bottom: 24px;">
-                            <h4 style="margin-bottom: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                                <span>🔗</span> 本次服务链路
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                ${timeline.map((item, idx) => `
-                                    <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <div style="width: 32px; height: 32px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">
-                                                ${item.icon}
-                                            </div>
-                                            ${idx < timeline.length - 1 ? '<div style="width: 2px; height: 20px; background: var(--border-color);"></div>' : ''}
-                                        </div>
-                                        <div style="flex: 1; padding: 10px 14px; background: var(--bg-color); border-radius: 8px;">
-                                            <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">${item.typeName}</div>
-                                            <div style="font-size: 12px; color: var(--text-secondary);">
-                                                ${this.getTimelinePreview(item)}
-                                            </div>
-                                            <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">${Utils.formatTime(item.time)}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        }
-
-        let recordsHtml = '';
-        if (records.length === 0) {
-            recordsHtml = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div class="empty-state-text">暂无健康记录</div>
-                </div>
-            `;
-        } else {
-            recordsHtml = `
-                <div class="records-list">
-                    ${records.slice(0, 10).map(r => `
-                        <div class="record-item" onclick="Modals.viewRecordDetail('${r.id}', '${r.type}')">
-                            <div class="record-header">
-                                <span class="record-type">${r.typeName} ${r.type === 'triage' ? ` - ${r.recommendedDept}` : ` - ${r.result}`}</span>
-                                <span class="record-time">${Utils.formatTime(r.createdAt)}</span>
-                            </div>
-                            <div class="record-preview">
-                                ${r.type === 'triage' ? r.symptoms.join('、') : r.result}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
         const content = `
             <div class="modal-header">
-                <h3>我的健康记录</h3>
+                <h3>📋 健康记录管理</h3>
                 <button class="modal-close" onclick="Modals.closeModal()">×</button>
             </div>
-            <div class="modal-body">
-                <div class="stats-dashboard">
-                    <div class="stat-card">
-                        <div class="stat-card-icon">💬</div>
-                        <div class="stat-card-value">${stats.totalConversations}</div>
-                        <div class="stat-card-label">对话次数</div>
+            <div class="modal-body" style="padding: 0; max-height: 75vh;">
+                <div class="records-dashboard">
+                    <div class="records-stats-bar">
+                        <div class="stat-card-mini" onclick="Store.setFilter('all')">
+                            <div class="stat-value" id="statAllCount">0</div>
+                            <div class="stat-label">全部记录</div>
+                        </div>
+                        <div class="stat-card-mini" onclick="Store.setFilter('triage')">
+                            <div class="stat-value" id="statTriageCount">0</div>
+                            <div class="stat-label">分诊记录</div>
+                        </div>
+                        <div class="stat-card-mini" onclick="Store.setFilter('constitution')">
+                            <div class="stat-value" id="statConstitutionCount">0</div>
+                            <div class="stat-label">体质测试</div>
+                        </div>
+                        <div class="stat-card-mini" style="cursor: default;">
+                            <div class="stat-value" id="statSelectedLabel">-</div>
+                            <div class="stat-label">当前选择</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card-icon">🏥</div>
-                        <div class="stat-card-value">${stats.totalTriages}</div>
-                        <div class="stat-card-label">分诊记录</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-icon">🧬</div>
-                        <div class="stat-card-value">${stats.totalConstitutions}</div>
-                        <div class="stat-card-label">体质测试</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-icon">📅</div>
-                        <div class="stat-card-value">${stats.totalAppointments}</div>
-                        <div class="stat-card-label">预约记录</div>
+
+                    <div class="records-three-col">
+                        <div class="records-col records-col-list">
+                            <div class="col-header">
+                                <span>记录列表</span>
+                                <span class="col-count" id="listCount">0 条</span>
+                            </div>
+                            <div class="records-list-scroll" id="recordsListContainer">
+                                <div class="empty-state small">
+                                    <div class="empty-state-icon">📋</div>
+                                    <div class="empty-state-text">暂无记录</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="records-col records-col-detail">
+                            <div class="col-header">
+                                <span>详情信息</span>
+                            </div>
+                            <div class="records-detail-scroll" id="recordsDetailContainer">
+                                <div class="empty-state small">
+                                    <div class="empty-state-icon">👈</div>
+                                    <div class="empty-state-text">请从左侧选择一条记录</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="records-col records-col-edit">
+                            <div class="col-header">
+                                <span>编辑 / 统计</span>
+                            </div>
+                            <div class="records-edit-scroll" id="recordsEditContainer">
+                                <div class="empty-state small">
+                                    <div class="empty-state-icon">✏️</div>
+                                    <div class="empty-state-text">选择记录后可编辑</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                ${timelineHtml}
-
-                <h4 style="margin-bottom: 16px; color: var(--text-primary);">📋 历史记录</h4>
-                ${recordsHtml}
             </div>
         `;
 
         this.openModal(content);
+        this.bindRecordsDashboard();
+        this.refreshRecordsDashboard();
+        Store.subscribe(() => this.refreshRecordsDashboard());
+    },
+
+    bindRecordsDashboard() {
+    },
+
+    refreshRecordsDashboard() {
+        const { stats, filter, selectedRecordId } = Store.state;
+
+        const statAllCount = document.getElementById('statAllCount');
+        const statTriageCount = document.getElementById('statTriageCount');
+        const statConstitutionCount = document.getElementById('statConstitutionCount');
+        const statSelectedLabel = document.getElementById('statSelectedLabel');
+
+        if (statAllCount) statAllCount.textContent = stats.totalTriages + stats.totalConstitutions;
+        if (statTriageCount) statTriageCount.textContent = stats.totalTriages;
+        if (statConstitutionCount) statConstitutionCount.textContent = stats.totalConstitutions;
+        if (statSelectedLabel) {
+            statSelectedLabel.textContent = selectedRecordId ? '已选择' : '未选择';
+            statSelectedLabel.style.color = selectedRecordId ? 'var(--primary-color)' : 'var(--text-light)';
+        }
+
+        document.querySelectorAll('.stat-card-mini').forEach((card, idx) => {
+            const filters = ['all', 'triage', 'constitution', ''];
+            if (filters[idx] === filter) {
+                card.style.borderColor = 'var(--primary-color)';
+                card.style.background = 'rgba(76, 175, 80, 0.08)';
+            } else if (filters[idx]) {
+                card.style.borderColor = 'var(--border-color)';
+                card.style.background = 'white';
+            }
+        });
+
+        this.renderRecordsList();
+        this.renderRecordsDetail();
+        this.renderRecordsEdit();
+    },
+
+    renderRecordsList() {
+        const container = document.getElementById('recordsListContainer');
+        const listCount = document.getElementById('listCount');
+        if (!container) return;
+
+        const records = Store.getFilteredRecords();
+        
+        if (listCount) listCount.textContent = `${records.length} 条`;
+
+        if (records.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state small">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">暂无记录</div>
+                </div>
+            `;
+            return;
+        }
+
+        const { selectedRecordId } = Store.state;
+
+        container.innerHTML = records.map(r => `
+            <div class="record-item-compact ${selectedRecordId === r.id ? 'selected' : ''}" 
+                 onclick="Store.selectRecord('${r.id}', '${r.type}')">
+                <div class="record-compact-icon">
+                    ${r.type === 'triage' ? '🏥' : '🧬'}
+                </div>
+                <div class="record-compact-content">
+                    <div class="record-compact-title">
+                        ${r.type === 'triage' ? r.recommendedDept : r.result}
+                    </div>
+                    <div class="record-compact-sub">
+                        ${r.type === 'triage' ? r.symptoms.slice(0,2).join('、') : r.typeName}
+                    </div>
+                    <div class="record-compact-time">${Utils.formatTime(r.createdAt)}</div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    renderRecordsDetail() {
+        const container = document.getElementById('recordsDetailContainer');
+        if (!container) return;
+
+        const record = Store.getFullRecord();
+        const selected = Store.getSelectedRecord();
+
+        if (!record || !selected) {
+            container.innerHTML = `
+                <div class="empty-state small">
+                    <div class="empty-state-icon">�</div>
+                    <div class="empty-state-text">请从左侧选择一条记录</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (selected.type === 'triage') {
+            const riskColors = {
+                high: 'var(--danger-color)',
+                medium: '#ff9800',
+                low: 'var(--success-color)'
+            };
+            const riskLabels = {
+                high: '高风险',
+                medium: '中风险',
+                low: '低风险'
+            };
+
+            container.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-badge badge-${record.riskLevel || 'low'}">
+                        ${riskLabels[record.riskLevel || 'low']}
+                    </div>
+                    <h4 class="detail-title">🏥 分诊记录</h4>
+                    
+                    <div class="detail-group">
+                        <div class="detail-label">症状表现</div>
+                        <div class="detail-tags">
+                            ${record.symptoms.map(s => `<span class="detail-tag">${s}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">推荐科室</div>
+                        <div class="detail-value primary">${record.recommendedDept || '-'}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-group">
+                            <div class="detail-label">持续时间</div>
+                            <div class="detail-value">${record.details?.duration || '-'}</div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-label">严重程度</div>
+                            <div class="detail-value">${record.details?.severity || '-'}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">详细描述</div>
+                        <div class="detail-value text">${record.details?.description || '无'}</div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">就医建议</div>
+                        <div class="detail-value text">${record.suggestion || '-'}</div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">记录时间</div>
+                        <div class="detail-value">${Utils.formatDate(record.createdAt)}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-badge badge-constitution">
+                        ${record.result}
+                    </div>
+                    <h4 class="detail-title">🧬 体质辨识记录</h4>
+
+                    <div class="detail-group">
+                        <div class="detail-label">体质类型</div>
+                        <div class="detail-value primary">${record.result || '-'}</div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">各体质得分</div>
+                        <div class="score-list">
+                            ${record.allScores?.map(s => `
+                                <div class="score-item">
+                                    <span class="score-name">${s.name}</span>
+                                    <div class="score-bar">
+                                        <div class="score-fill" style="width: ${s.score}%"></div>
+                                    </div>
+                                    <span class="score-num">${Math.round(s.score)}%</span>
+                                </div>
+                            `).join('') || ''}
+                        </div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">调理建议</div>
+                        <div class="detail-value text">${record.suggestion || '-'}</div>
+                    </div>
+
+                    <div class="detail-group">
+                        <div class="detail-label">测试时间</div>
+                        <div class="detail-value">${Utils.formatDate(record.createdAt)}</div>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    renderRecordsEdit() {
+        const container = document.getElementById('recordsEditContainer');
+        if (!container) return;
+
+        const record = Store.getFullRecord();
+        const selected = Store.getSelectedRecord();
+
+        if (!record || !selected) {
+            container.innerHTML = `
+                <div class="empty-state small">
+                    <div class="empty-state-icon">✏️</div>
+                    <div class="empty-state-text">选择记录后可编辑</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (selected.type === 'triage') {
+            container.innerHTML = `
+                <div class="edit-section">
+                    <h4 class="edit-title">编辑分诊记录</h4>
+                    
+                    <div class="form-group">
+                        <label>推荐科室</label>
+                        <input type="text" id="editDept" value="${record.recommendedDept || ''}" placeholder="请输入科室">
+                    </div>
+
+                    <div class="form-group">
+                        <label>风险等级</label>
+                        <select id="editRisk">
+                            <option value="low" ${record.riskLevel === 'low' ? 'selected' : ''}>低风险</option>
+                            <option value="medium" ${record.riskLevel === 'medium' ? 'selected' : ''}>中风险</option>
+                            <option value="high" ${record.riskLevel === 'high' ? 'selected' : ''}>高风险</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>就医建议</label>
+                        <textarea id="editSuggestion" rows="3" placeholder="请输入建议">${record.suggestion || ''}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>备注说明</label>
+                        <textarea id="editDescription" rows="2" placeholder="请输入备注">${record.details?.description || ''}</textarea>
+                    </div>
+
+                    <div class="edit-actions">
+                        <button class="btn btn-primary btn-block" onclick="Modals.saveRecordEdit()">
+                            💾 保存修改
+                        </button>
+                        <button class="btn btn-danger btn-block" onclick="Modals.deleteSelectedRecord()">
+                            �️ 删除记录
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="edit-section">
+                    <h4 class="edit-title">编辑体质记录</h4>
+                    
+                    <div class="form-group">
+                        <label>体质类型</label>
+                        <select id="editConstitution">
+                            ${TCM_DATA.constitutionTypes.map(c => `
+                                <option value="${c.name}" ${record.result === c.name ? 'selected' : ''}>${c.name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>调理建议</label>
+                        <textarea id="editConstitutionSuggestion" rows="4" placeholder="请输入调理建议">${record.suggestion || ''}</textarea>
+                    </div>
+
+                    <div class="edit-actions">
+                        <button class="btn btn-primary btn-block" onclick="Modals.saveRecordEdit()">
+                            💾 保存修改
+                        </button>
+                        <button class="btn btn-danger btn-block" onclick="Modals.deleteSelectedRecord()">
+                            🗑️ 删除记录
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    saveRecordEdit() {
+        const { selectedRecordId, selectedRecordType } = Store.state;
+        if (!selectedRecordId || !selectedRecordType) return;
+
+        if (selectedRecordType === 'triage') {
+            const dept = document.getElementById('editDept')?.value || '';
+            const risk = document.getElementById('editRisk')?.value || 'low';
+            const suggestion = document.getElementById('editSuggestion')?.value || '';
+            const description = document.getElementById('editDescription')?.value || '';
+
+            const record = Store.getFullRecord();
+            const updates = {
+                recommendedDept: dept,
+                riskLevel: risk,
+                suggestion: suggestion,
+                details: {
+                    ...record.details,
+                    description: description
+                }
+            };
+
+            Store.updateRecord('triage', selectedRecordId, updates);
+            Modals.showToast('✅ 分诊记录已更新');
+        } else {
+            const constitution = document.getElementById('editConstitution')?.value || '';
+            const suggestion = document.getElementById('editConstitutionSuggestion')?.value || '';
+
+            Store.updateRecord('constitution', selectedRecordId, {
+                result: constitution,
+                suggestion: suggestion
+            });
+            Modals.showToast('✅ 体质记录已更新');
+        }
+    },
+
+    deleteSelectedRecord() {
+        const { selectedRecordId, selectedRecordType } = Store.state;
+        if (!selectedRecordId || !selectedRecordType) return;
+
+        Modals.showAlert({
+            title: '⚠️ 确认删除',
+            content: '<p>确定要删除这条记录吗？删除后无法恢复。</p>',
+            confirmText: '确认删除',
+            cancelText: '取消',
+            onConfirm: () => {
+                Store.deleteRecord(selectedRecordType, selectedRecordId);
+                Modals.showToast('🗑️ 记录已删除');
+            }
+        });
+    },
+
+    showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideDown 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideUp 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
     },
 
     getTimelinePreview(item) {

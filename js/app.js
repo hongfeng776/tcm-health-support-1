@@ -5,6 +5,9 @@ const App = {
         if (window.Session) {
             Session.init();
         }
+        if (window.Store) {
+            Store.init();
+        }
         this.renderSidebar();
         this.renderDoctorList();
         this.bindNavigation();
