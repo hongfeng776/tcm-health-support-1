@@ -382,8 +382,18 @@ const TriageModule = {
         records.unshift(record);
         Storage.set('triageRecords', records);
 
+        if (window.Session) {
+            Session.setTriageRecordId(record.id);
+        }
+
         if (window.RecordsModule) {
             RecordsModule.updateStats();
+        }
+
+        if (window.ChatModule && Session.getCurrentSession()?.conversationId) {
+            setTimeout(() => {
+                ChatModule.notifyTriageComplete(record.id);
+            }, 1500);
         }
     },
 

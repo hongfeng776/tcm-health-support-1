@@ -61,6 +61,42 @@ const Modals = {
     openRecordsModal() {
         const records = RecordsModule.getAllRecords();
         const stats = RecordsModule.getStats();
+        
+        let timelineHtml = '';
+        if (window.Session) {
+            const currentSession = Session.getCurrentSession();
+            if (currentSession) {
+                const timeline = RecordsModule.getSessionTimeline(currentSession.id);
+                if (timeline.length > 0) {
+                    timelineHtml = `
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <span>🔗</span> 本次服务链路
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                ${timeline.map((item, idx) => `
+                                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                        <div style="display: flex; flex-direction: column; align-items: center;">
+                                            <div style="width: 32px; height: 32px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                                ${item.icon}
+                                            </div>
+                                            ${idx < timeline.length - 1 ? '<div style="width: 2px; height: 20px; background: var(--border-color);"></div>' : ''}
+                                        </div>
+                                        <div style="flex: 1; padding: 10px 14px; background: var(--bg-color); border-radius: 8px;">
+                                            <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">${item.typeName}</div>
+                                            <div style="font-size: 12px; color: var(--text-secondary);">
+                                                ${this.getTimelinePreview(item)}
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">${Utils.formatTime(item.time)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
 
         let recordsHtml = '';
         if (records.length === 0) {
@@ -117,12 +153,28 @@ const Modals = {
                     </div>
                 </div>
 
-                <h4 style="margin-bottom: 16px; color: var(--text-primary);">📋 最近记录</h4>
+                ${timelineHtml}
+
+                <h4 style="margin-bottom: 16px; color: var(--text-primary);">📋 历史记录</h4>
                 ${recordsHtml}
             </div>
         `;
 
         this.openModal(content);
+    },
+
+    getTimelinePreview(item) {
+        switch (item.type) {
+            case 'conversation':
+                const msgCount = item.data.messages.filter((m) => m.role === 'user').length;
+                return `已咨询 ${msgCount} 个问题`;
+            case 'triage':
+                return `症状：${item.data.symptoms.slice(0, 3).join('、')}${item.data.symptoms.length > 3 ? '...' : ''} → ${item.data.recommendedDept}`;
+            case 'constitution':
+                return `体质类型：${item.data.result}`;
+            default:
+                return '';
+        }
     },
 
     viewRecordDetail(id, type) {

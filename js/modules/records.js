@@ -18,6 +18,58 @@ const RecordsModule = {
         if (constitutionEl) constitutionEl.textContent = constitutionCount;
     },
 
+    getSessionTimeline(sessionId) {
+        const allSessions = Storage.get('allSessions', []);
+        const session = allSessions.find(s => s.id === sessionId);
+        if (!session) return [];
+
+        const timeline = [];
+
+        if (session.conversationId) {
+            const conversations = Storage.get('conversations', []);
+            const conv = conversations.find(c => c.id === session.conversationId);
+            if (conv) {
+                timeline.push({
+                    type: 'conversation',
+                    typeName: '健康咨询',
+                    icon: '💬',
+                    time: conv.createdAt,
+                    data: conv
+                });
+            }
+        }
+
+        if (session.triageRecordId) {
+            const triages = Storage.get('triageRecords', []);
+            const triage = triages.find(t => t.id === session.triageRecordId);
+            if (triage) {
+                timeline.push({
+                    type: 'triage',
+                    typeName: '症状分诊',
+                    icon: '🏥',
+                    time: triage.createdAt,
+                    data: triage
+                });
+            }
+        }
+
+        if (session.constitutionRecordId) {
+            const constitutions = Storage.get('constitutionRecords', []);
+            const constitution = constitutions.find(c => c.id === session.constitutionRecordId);
+            if (constitution) {
+                timeline.push({
+                    type: 'constitution',
+                    typeName: '体质辨识',
+                    icon: '🧬',
+                    time: constitution.createdAt,
+                    data: constitution
+                });
+            }
+        }
+
+        return timeline.sort((a, b) => new Date(a.time) - new Date(b.time));
+    },
+
     getAllRecords() {
         const triageRecords = Storage.get('triageRecords', []).map(r => ({
             ...r,

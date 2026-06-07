@@ -228,6 +228,20 @@ const ConstitutionModule = {
         records.unshift(record);
         Storage.set('constitutionRecords', records);
         Storage.set('lastConstitutionResult', record);
+
+        if (window.Session) {
+            Session.setConstitutionRecordId(record.id);
+        }
+
+        if (window.RecordsModule) {
+            RecordsModule.updateStats();
+        }
+
+        if (window.ChatModule && Session.getCurrentSession()?.conversationId) {
+            setTimeout(() => {
+                ChatModule.notifyConstitutionComplete(record.id);
+            }, 1500);
+        }
     },
 
     retakeTest() {
